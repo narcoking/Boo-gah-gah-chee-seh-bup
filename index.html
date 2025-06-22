@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부가가치세법 퀴즈 대작전! 🕵️‍♀️</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js CDN for sound effects -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js"></script>
+    <style>
+        /* Inter font setting */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Apply background and text color for the entire body using Tailwind's dark: prefix */
+            /* Default light mode colors */
+            @apply bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4;
+            transition: background-color 0.3s ease, color 0.3s ease; /* Add smooth transition effect */
+        }
+        /* Scrollbar design (optional) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+            @apply dark:bg-gray-700; /* Dark mode scrollbar track */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+            @apply dark:bg-gray-500; /* Dark mode scrollbar thumb */
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+            @apply dark:bg-gray-400; /* Dark mode scrollbar thumb hover */
+        }
+
+        /* --- Dark Mode Specific Overrides (Stronger Application for text visibility) --- */
+        /* Ensure body background changes directly when html has 'dark' class and text becomes very light */
+        html.dark body {
+            background-color: #111827 !important; /* Tailwind's gray-900 equivalent */
+            color: #f9fafb !important; /* Tailwind's gray-100 equivalent - general text color */
+        }
+        /* Ensure quiz-container background changes directly and its child texts are bright */
+        html.dark #quiz-container {
+            background-color: #1f2937 !important; /* Tailwind's gray-800 equivalent */
+        }
+
+        /* Force specific text elements to be white in dark mode */
+        html.dark #start-screen h1,
+        html.dark #start-screen p,
+        html.dark #quiz-header #question-count,
+        html.dark #quiz-header #timer-display,
+        html.dark #question-text,
+        html.dark #feedback-text,
+        html.dark #explanation-text,
+        html.dark #end-quiz-screen h2,
+        html.dark #incorrect-count-display {
+            color: #f9fafb !important; /* Tailwind's gray-100 - very light almost white */
+        }
+
+        /* MODIFIED: Ensure feedback-explanation-area background changes in dark mode */
+        html.dark #feedback-explanation-area {
+            background-color: #1f2937 !important; /* Tailwind's gray-800 equivalent for the explanation box */
+            border-color: #4b5563 !important; /* Dark mode border color */
+        }
+
+
+        /* Choices text color in dark mode - APPLY !IMPORTANT HERE more directly */
+        html.dark #question-choices-area > div {
+            color: #f9fafb !important; /* Ensures choice text is white in dark mode */
+            background-color: #374151 !important; /* Tailwind gray-700 equivalent */
+            border-color: #4b5563 !important; /* Tailwind gray-600 equivalent */
+        }
+
+        /* Override specific class text colors for dark mode */
+        .text-gray-700 { /* For start screen P tags, question count, timer, incorrect count */
+            @apply dark:text-gray-100 !important;
+        }
+        .text-gray-800 { /* For H1, H2, Question text */
+            @apply dark:text-gray-100 !important;
+        }
+        .text-blue-600 { /* For scores etc. */
+             @apply dark:text-blue-400 !important; /* Keep blue for scores but make it dark-mode friendly */
+        }
+
+        /* Specific dark mode styles for choice buttons */
+        #question-choices-area > div.hover\:bg-blue-50:hover {
+            @apply dark:hover:bg-blue-900 dark:hover:bg-opacity-20;
+        }
+
+        /* MODIFIED: Changed selected choice background and added distinct blue border for dark mode */
+        #question-choices-area > div.bg-blue-200 { /* selected choice in light mode */
+            /* Existing light mode styles */
+        }
+        html.dark #question-choices-area > div.bg-blue-200 { /* selected choice in dark mode */
+            background-color: #2a3547 !important; /* Slightly lighter than gray-800, darker than gray-700 for distinct selection */
+            border-color: #60a5fa !important; /* Tailwind blue-400 for a clear blue border */
+            border-width: 2px !important; /* Make border more visible */
+            /* Removed ring as border is now used for highlight */
+        }
+
+        #question-choices-area > div.bg-green-100 { /* correct answer feedback */
+            @apply dark:bg-green-700 dark:border-green-400;
+        }
+        #question-choices-area > div.bg-green-200 { /* selected correct answer */
+            @apply dark:bg-green-600 dark:border-green-300;
+        }
+        #question-choices-area > div.bg-red-200 { /* selected incorrect answer */
+            @apply dark:bg-red-600 dark:border-red-300;
+        }
+
+        /* --- Dark Mode for Message Box --- */
+        html.dark #message-box > div { /* Inner div of the message box */
+            background-color: #1f2937 !important; /* Darker background */
+            color: #f9fafb !important; /* Light text for consistency */
+        }
+
+        html.dark #message-text { /* Text inside the message box */
+            color: #f9fafb !important; /* Ensure message text is light */
+        }
+
+        /* Message box button for dark mode (using existing gradient, but ensuring text is visible) */
+        html.dark #message-ok-btn {
+            color: #ffffff !important; /* Explicitly ensure white text on button */
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container" class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-2xl transition-colors duration-300 relative">
+        <!-- Settings Controls (Top Right) -->
+        <div id="settings-controls" class="absolute top-4 right-4 flex space-x-2">
+            <!-- Dark Mode Toggle -->
+            <button id="dark-mode-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition duration-300 ease-in-out hover:scale-110">
+                <!-- Sun icon (default: shown in light mode) -->
+                <svg id="sun-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1m-16 0H3m15.325-7.325l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l.707-.707M6.343 6.343l-.707-.707"></path>
+                </svg>
+                <!-- Moon icon (hidden by default, shown in dark mode) -->
+                <svg id="moon-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+            </button>
+            <!-- Sound Toggle -->
+            <button id="sound-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition duration-300 ease-in-out transform hover:scale-110">
+                <!-- Speaker icon (default: shown when sound is on) -->
+                <svg id="speaker-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9l1.414-1.414M7.05 18.95a5 5 0 010-7.072M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <!-- Mute icon (hidden by default, shown when sound is off) -->
+                <svg id="mute-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Start screen -->
+        <div id="start-screen" class="text-center p-6 space-y-4">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">부가가치세법 퀴즈 대작전! 🕵️‍♀️</h1>
+            <p class="text-lg text-gray-700 dark:text-gray-300 mb-8">몇 문제 풀어볼까? 숫자 버튼을 눌러줘! 👇</p>
+            <div class="space-y-4">
+                <!-- Start 10 questions button with pastel gradient -->
+                <button id="start-10-btn" class="w-full bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    10문제 도전! 🚀
+                </button>
+                <!-- Start 20 questions button with pastel gradient -->
+                <button id="start-20-btn" class="w-full bg-gradient-to-r from-green-200 to-green-400 hover:from-green-300 hover:to-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    20문제 용감하게! 🌟
+                </button>
+                <!-- Start 40 questions button with pastel gradient -->
+                <button id="start-40-btn" class="w-full bg-gradient-to-r from-purple-200 to-purple-400 hover:from-purple-300 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    40문제 척척박사! 🌈
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz screen -->
+        <div id="quiz-screen" class="hidden w-full">
+            <!-- Quiz header: Question number, score, and Timer -->
+            <div id="quiz-header" class="flex justify-between items-center w-full mb-6">
+                <p id="question-count" class="text-lg font-semibold text-gray-700 dark:text-gray-300">문제 0 / 0</p>
+                <p id="timer-display" class="text-lg font-semibold text-gray-700 dark:text-gray-300">00:00</p>
+                <p id="score-display" class="text-lg font-semibold text-blue-600 dark:text-blue-400">별 점수: 0 ✨</p>
+            </div>
+
+            <!-- Question text -->
+            <p id="question-text" class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6"></p>
+
+            <!-- Choices area -->
+            <div id="question-choices-area" class="w-full space-y-4 mb-6">
+                <!-- Choices will be dynamically inserted here -->
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="O">O (동그라미)</div>
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="X">X (엑스)</div>
+            </div>
+
+            <!-- Feedback and explanation area -->
+            <div id="feedback-explanation-area" class="w-full bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 hidden">
+                <p id="feedback-text" class="font-semibold mb-2"></p>
+                <p id="explanation-text" class="text-gray-700 dark:text-gray-300 text-sm"></p>
+            </div>
+
+            <!-- Quiz control buttons -->
+            <div id="quiz-controls" class="w-full flex justify-between mt-6">
+                <!-- Check Answer / Next Question button with pastel gradient -->
+                <button id="check-next-btn" class="bg-gradient-to-r from-indigo-200 to-indigo-400 hover:from-indigo-300 hover:to-indigo-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    다음 문제로 Go! 👉
+                </button>
+                <!-- End Early button with pastel gradient -->
+                <button id="end-early-btn" class="bg-gradient-to-r from-red-200 to-red-400 hover:from-red-300 hover:to-red-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    퀴즈 이제 그만! 멈춰! ✋
+                </button>
+            </div>
+        </div>
+
+        <!-- End quiz screen -->
+        <div id="end-quiz-screen" class="text-center p-6 space-y-4 hidden w-full">
+            <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">퀴즈 끝! 정말 멋진 도전이었어! ✨</h2>
+            <p id="final-score" class="text-2xl text-blue-600 dark:text-blue-400 font-bold mb-6">최종 점수: 0점</p>
+            <div id="end-quiz-buttons-area" class="space-y-4">
+                <!-- Restart Full Quiz button with pastel gradient -->
+                <button id="restart-full-quiz-btn" class="w-full bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    처음부터 다시! 🐥
+                </button>
+                <!-- Review Incorrect button with pastel gradient -->
+                <button id="review-incorrect-btn" class="w-full bg-gradient-to-r from-yellow-200 to-yellow-400 hover:from-yellow-300 hover:to-yellow-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    틀린 문제 복습! 🧠
+                </button>
+                <!-- Go To Home button with pastel gradient -->
+                <button id="go-to-home-btn" class="w-full bg-gradient-to-r from-gray-200 to-gray-400 hover:from-gray-300 hover:to-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    처음 화면으로! 🏠
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom message box -->
+    <div id="message-box" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-xl text-center w-80">
+            <p id="message-text" class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100"></p>
+            <button id="message-ok-btn" class="bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-2 px-4 rounded-lg">좋아! 😊</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================ Cache DOM elements ============================
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const endQuizScreen = document.getElementById('end-quiz-screen');
+
+        const start10Button = document.getElementById('start-10-btn');
+        const start20Button = document.getElementById('start-20-btn');
+        const start40Button = document.getElementById('start-40-btn');
+
+        const quizHeader = document.getElementById('quiz-header');
+        const questionCount = document.getElementById('question-count');
+        const timerDisplay = document.getElementById('timer-display'); // Added timer display element
+        const scoreDisplay = document.getElementById('score-display');
+        const questionText = document.getElementById('question-text');
+        const questionChoicesArea = document.getElementById('question-choices-area');
+        const feedbackExplanationArea = document.getElementById('feedback-explanation-area');
+        const feedbackText = document.getElementById('feedback-text');
+        const explanationText = document.getElementById('explanation-text');
+        const quizControls = document.getElementById('quiz-controls');
+        const checkNextButton = document.getElementById('check-next-btn');
+        const endEarlyButton = document.getElementById('end-early-btn');
+
+        const finalScoreDisplay = document.getElementById('final-score');
+        const endQuizButtonsArea = document.getElementById('end-quiz-buttons-area'); // Added
+        const restartFullQuizButton = document.getElementById('restart-full-quiz-btn');
+        const reviewIncorrectButton = document.getElementById('review-incorrect-btn');
+        const goToHomeButton = document.getElementById('go-to-home-btn');
+
+        const settingsControls = document.getElementById('settings-controls'); // Settings button container
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const moonIcon = document.getElementById('moon-icon');
+        const sunIcon = document.getElementById('sun-icon');
+        const soundToggle = document.getElementById('sound-toggle');
+        const speakerIcon = document.getElementById('speaker-icon');
+        const muteIcon = document.getElementById('mute-icon');
+
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const messageOkButton = document.getElementById('message-ok-btn');
+
+        // ============================ Global variables and quiz data ============================
+        let allQuizData = []; // Array to store all quiz data
+        let currentQuizData = []; // Array of questions for the current quiz session
+        let incorrectQuestions = []; // Array to store incorrect questions
+        let currentQuestionIndex = 0;
+        let score = 0; // Raw score (number of correct answers)
+        let selectedChoice = null; // Changed to store 'O' or 'X'
+        let isAnswerChecked = false; // Flag for answer check status
+        let quizTotalQuestions = 0; // Total number of questions for the current quiz session (set at start)
+        let isSoundEnabled = true; // Sound active status
+        let timer = 0; // Timer in seconds
+        let timerIntervalId = null; // ID to clear the interval
+
+        // Tone.js PolySynth (synthesizer that can play multiple notes simultaneously)
+        const polySynth = new Tone.PolySynth(Tone.Synth).toDestination();
+
+        // ============================ Custom message box functions ============================
+        /**
+         * Function to display a message to the user (replaces alert)
+         * @param {string} message - Text message to display
+         */
+        function showMessage(message) {
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+            // Hide message box and remove event listener when 'OK' button is clicked
+            messageOkButton.addEventListener('click', hideMessage, { once: true });
+        }
+
+        /**
+         * Function to hide the message box
+         */
+        function hideMessage() {
+            messageBox.classList.add('hidden');
+        }
+
+        // ============================ Sound effect functions ============================
+        /**
+         * Checks Tone.start() and Tone.Destination.mute status before playing sound
+         * @returns {Promise<void>}
+         */
+        async function ensureAudioContextAndSound() {
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+            }
+            // Set Tone.Destination.mute based on isSoundEnabled status
+            Tone.Destination.mute = !isSoundEnabled;
+        }
+
+        /**
+         * Sound played when the answer is correct
+         */
+        async function playCorrectSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("C5", "8n"); // Play C5 note for 8th note duration
+            }
+        }
+
+        /**
+         * Sound played when the answer is incorrect
+         */
+        async function playIncorrectSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("C3", "8n"); // Play C3 note for 8th note duration
+            }
+        }
+
+        /**
+         * Sound played when quiz starts or restarts (uses chord)
+         */
+        async function playStartSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease(["C4", "E4", "G4"], "8n"); // Short ascending chord (C Major)
+            }
+        }
+
+        /**
+         * Sound played when quiz ends (uses chord)
+         */
+        async function playEndSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease(["A3", "C4", "E4"], "4n"); // Short, low descending sound (A Minor)
+            }
+        }
+
+        /**
+         * Sound played on general button click or choice selection
+         */
+        async function playButtonClickSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("G4", "32n"); // Very short click sound
+            }
+        }
+
+        // ============================ Embed quiz data ============================
+        const vatQuizData = [
+            {
+                question: "부가가치세는 국세이며, 특별소비세에 해당한다. (O/X)",
+                answer: "X",
+                explanation: "부가가치세는 국세이지만, 특별소비세가 아닌 일반소비세에 해당한다."
+            },
+            {
+                question: "부가가치세의 납세의무자는 영리목적 유무와 관계없이 사업상 독립적으로 재화 또는 용역을 공급하는 자이다. (O/X)",
+                answer: "O",
+                explanation: "부가가치세법상 사업자는 영리 목적의 유무와 관계없이 사업상 독립적으로 재화 또는 용역을 공급하는 자를 말한다."
+            },
+            {
+                question: "면세사업자는 부가가치세의 납세의무가 없다. (O/X)",
+                answer: "O",
+                explanation: "면세사업자는 부가가치세법상 납세의무가 없어 부가가치세를 징수하여 납부할 의무가 없다."
+            },
+            {
+                question: "재화의 공급은 계약상 또는 법률상의 모든 원인에 따라 재화를 인도하거나 양도하는 것을 말한다. (O/X)",
+                answer: "O",
+                explanation: "재화의 공급은 계약상 또는 법률상의 원인에 따라 재화를 인도하거나 양도하는 것을 의미한다."
+            },
+            {
+                question: "용역의 공급은 역무를 제공하거나 재화·시설물 또는 권리를 사용하게 하는 것을 말한다. (O/X)",
+                answer: "O",
+                explanation: "용역의 공급은 역무를 제공하는 것과 재화, 시설물 또는 권리를 사용하게 하는 것을 포함한다."
+            },
+            {
+                question: "주사업장 총괄납부 사업자는 사업장별로 부가가치세가 과세된다. (O/X)",
+                answer: "X",
+                explanation: "주사업장 총괄납부는 각 사업장의 납부세액 또는 환급세액을 주된 사업장에서 총괄하여 납부 또는 환급받는 제도이며, 사업장별 과세원칙은 유지된다. 즉, 사업장별로 계산된 세액을 합산하여 납부하는 방식이다."
+            },
+            {
+                question: "간이과세자가 일반과세자로 변경되는 경우 변경되는 날부터 일반과세자에 관한 규정을 적용한다. (O/X)",
+                answer: "O",
+                explanation: "간이과세자가 일반과세자로 변경되면, 그 변경일부터 일반과세자에 대한 규정을 적용받는다."
+            },
+            {
+                question: "사업자가 사업을 시작할 때 사업자등록을 신청하지 않으면 미등록 가산세가 부과된다. (O/X)",
+                answer: "O",
+                explanation: "사업 개시일부터 20일 이내에 사업자등록을 하지 않으면 미등록 가산세가 부과된다."
+            },
+            {
+                question: "사업자 단위 과세사업자는 사업자등록을 사업장마다 각각 해야 한다. (O/X)",
+                answer: "X",
+                explanation: "사업자 단위 과세사업자는 본점 또는 주사무소에서만 사업자등록을 하면 되며, 각 사업장별로 별도의 사업자등록은 하지 않는다."
+            },
+            {
+                question: "폐업하는 경우 폐업일이 속하는 달의 말일부터 25일 이내에 최종 부가가치세를 신고·납부하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "폐업일이 속하는 과세기간의 최종 부가가치세 신고·납부는 폐업일부터 25일 이내에 하여야 한다."
+            },
+            {
+                question: "사업의 포괄양도는 재화의 공급으로 보지 않는다. (O/X)",
+                answer: "O",
+                explanation: "사업의 포괄양도는 부가가치세 과세대상인 재화의 공급으로 보지 않는다. 이는 사업의 동일성을 유지하면서 사업을 양도하는 것이므로 소비세적 성격에 부합하지 않기 때문이다."
+            },
+            {
+                question: "개인사업자가 사망하여 사업을 승계하는 경우 사업자등록은 상속개시일부터 6개월 이내에 정정신고하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "개인사업자가 사망하여 사업을 승계하는 경우, 상속개시일부터 6개월 이내에 사업자등록을 신청해야 한다. (정정신고가 아님)"
+            },
+            {
+                question: "재화의 수입은 부가가치세 과세대상에 해당한다. (O/X)",
+                answer: "O",
+                explanation: "재화의 수입은 부가가치세 과세대상 중 하나이다."
+            },
+            {
+                question: "저당권, 질권 또는 양도담보의 목적으로 동산, 부동산 및 부동산상의 권리를 제공하는 것은 재화의 공급으로 보지 않는다. (O/X)",
+                answer: "O",
+                explanation: "저당권 설정 등은 담보 제공 행위이므로 재화의 공급에 해당하지 않는다."
+            },
+            {
+                question: "사업자가 자기의 사업을 위하여 직접 생산하거나 취득한 재화를 자기의 개인적인 목적 또는 그 밖의 목적을 위하여 사용하거나 소비하는 것은 재화의 공급으로 보지 않는다. (O/X)",
+                answer: "X",
+                explanation: "사업자가 자기 생산·취득 재화를 자기의 개인적인 목적 등으로 사용하는 것은 '자가공급'에 해당하여 재화의 공급으로 본다. (면세사업전용, 비영업용 소형승용차 및 그 유지, 개인적 공급, 사업상 증여, 폐업 시 잔존재화)"
+            },
+            {
+                question: "직매장 반출은 사업장별 과세원칙에 따라 재화의 공급으로 본다. (O/X)",
+                answer: "O",
+                explanation: "직매장 반출은 사업장별 과세원칙에 따라 재화의 공급으로 본다. 다만, 주사업장 총괄납부 사업자의 경우 일정 요건 충족 시 재화의 공급으로 보지 않는다."
+            },
+            {
+                question: "건설업자가 건설장비를 직접 조립하여 판매하는 경우 재화의 공급에 해당한다. (O/X)",
+                answer: "O",
+                explanation: "건설장비를 조립하여 판매하는 것은 재화의 공급에 해당한다."
+            },
+            {
+                question: "건설업자가 건설용역을 제공하는 경우 용역의 공급에 해당한다. (O/X)",
+                answer: "O",
+                explanation: "건설용역 제공은 용역의 공급에 해당한다."
+            },
+            {
+                question: "면세사업자가 과세사업으로 전환하는 경우 면세사업 시 매입세액은 공제받을 수 없다. (O/X)",
+                answer: "O",
+                explanation: "면세사업자는 부가가치세 납세의무가 없으므로 면세사업 관련 매입세액은 공제받을 수 없다."
+            },
+            {
+                question: "과세사업과 면세사업을 겸영하는 사업자는 부가가치세를 신고할 때 과세사업과 면세사업의 수입금액을 구분하여 신고하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "겸영사업자는 부가가치세 신고 시 과세사업과 면세사업의 수입금액을 구분하여 신고해야 한다."
+            },
+            {
+                question: "법률에 따른 인가·허가 또는 면허를 받지 아니하고 행하는 사업은 원칙적으로 부가가치세 과세대상에서 제외된다. (O/X)",
+                answer: "X",
+                explanation: "무허가 사업도 부가가치세 과세대상에 포함된다. 세법은 사실상의 사업 활동에 대해 과세한다."
+            },
+            {
+                question: "위탁매매의 경우 재화가 인도되는 때가 아닌, 위탁자가 수탁자에게 재화를 인도하는 때를 재화의 공급시기로 본다. (O/X)",
+                answer: "X",
+                explanation: "위탁매매의 경우 수탁자가 위탁자 명의로 재화를 인도하는 때를 재화의 공급시기로 본다."
+            },
+            {
+                question: "장기할부판매의 경우 대가의 각 부분을 받기로 한 때를 재화의 공급시기로 본다. (O/X)",
+                answer: "O",
+                explanation: "장기할부판매는 특례 규정에 따라 대가의 각 부분을 받기로 한 때를 공급시기로 본다."
+            },
+            {
+                question: "무인판매기를 이용하여 재화를 공급하는 경우 그 공급가액은 사업자가 현금을 인출하는 때로 본다. (O/X)",
+                answer: "O",
+                explanation: "무인판매기를 통한 재화 공급의 경우, 사업자가 현금을 인출하는 때를 공급시기로 본다."
+            },
+            {
+                question: "용역의 공급시기는 역무의 제공이 완료되는 때 또는 대가를 받기로 한 때 중 먼저 도래하는 때로 한다. (O/X)",
+                answer: "X",
+                explanation: "용역의 공급시기는 원칙적으로 역무의 제공이 완료되는 때 또는 공급대가의 각 부분을 받기로 한 때로 한다. (먼저 도래하는 때가 아님)"
+            },
+            {
+                question: "완성도기준 지급조건부 용역의 공급시기는 대가의 각 부분을 받기로 한 때이다. (O/X)",
+                answer: "O",
+                explanation: "완성도기준 지급조건부 용역의 경우, 대가의 각 부분을 받기로 한 때를 공급시기로 본다."
+            },
+            {
+                question: "수출하는 재화의 공급시기는 선적이 완료되는 때이다. (O/X)",
+                answer: "O",
+                explanation: "수출 재화의 경우, 원칙적으로 선적일(항공기인 경우 기적일)을 공급시기로 본다."
+            },
+            {
+                question: "용역의 공급에 해당하는 부동산 임대용역의 경우 그 대가를 받기로 한 때를 공급시기로 본다. (O/X)",
+                answer: "O",
+                explanation: "부동산 임대용역의 경우 원칙적으로 대가의 각 부분을 받기로 한 때를 공급시기로 본다."
+            },
+            {
+                question: "재화의 수입 시기는 수입신고수리일이다. (O/X)",
+                answer: "O",
+                explanation: "재화의 수입 시기는 관세법에 따른 수입신고수리일이다."
+            },
+            {
+                question: "공급가액은 부가가치세가 포함되지 않은 금액이다. (O/X)",
+                answer: "O",
+                explanation: "공급가액은 공급하는 재화 또는 용역의 가액으로서, 부가가치세가 포함되지 않은 금액을 말한다."
+            },
+            {
+                question: "재화의 공급에 대하여 부당하게 낮은 대가를 받거나 대가를 받지 아니하는 경우 시가를 공급가액으로 본다. (O/X)",
+                answer: "O",
+                explanation: "특수관계인과의 거래 등에서 시가보다 낮은 대가를 받거나 무상으로 공급하는 경우, 부당행위계산 부인 규정에 따라 시가를 공급가액으로 본다."
+            },
+            {
+                question: "특수관계인에게 용역을 무상으로 공급하는 경우 용역의 공급으로 보지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "특수관계인에게 용역을 무상으로 공급하는 경우에도 특례 규정에 따라 용역의 공급으로 보아 과세한다."
+            },
+            {
+                question: "마일리지를 사용하여 재화 또는 용역을 공급받는 경우 해당 마일리지 상당액은 공급가액에 포함되지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "마일리지를 사용하여 재화 또는 용역을 공급받는 경우, 해당 마일리지 상당액은 공급가액에 포함된다."
+            },
+            {
+                question: "외화로 대가를 받는 경우 공급시기가 도래하기 전에 환가한 금액은 그 환가한 금액을 공급가액으로 한다. (O/X)",
+                answer: "O",
+                explanation: "외화 공급가액은 원칙적으로 공급시기의 기준환율 또는 재정환율을 적용하지만, 공급시기 도래 전에 환가한 경우에는 그 환가액을 공급가액으로 한다."
+            },
+            {
+                question: "할부판매의 경우 총 할부금액을 공급가액으로 한다. (O/X)",
+                answer: "O",
+                explanation: "할부판매는 총 할부금액을 공급가액으로 하며, 대가의 각 부분을 받기로 한 때를 공급시기로 보지 않는다. (장기할부판매와 구분)"
+            },
+            {
+                question: "보조금은 공급가액에 포함되지 않는 것이 원칙이다. (O/X)",
+                answer: "X",
+                explanation: "보조금 중에서도 판매장려금 등 특정 보조금은 공급가액에 포함된다."
+            },
+            {
+                question: "국고보조금은 공급가액에 포함되는 것이 원칙이다. (O/X)",
+                answer: "X",
+                explanation: "일반적으로 국고보조금은 재화 또는 용역의 공급과 직접적인 대가관계가 없으므로 공급가액에 포함되지 않는 것이 원칙이다. 다만, 특정 요건의 보조금은 과세대상에 해당할 수 있다."
+            },
+            {
+                question: "대손금액은 공급가액에서 공제된다. (O/X)",
+                answer: "X",
+                explanation: "대손금액은 공급가액에서 공제되는 것이 아니라, 납부할 세액에서 대손세액공제를 통해 세액을 줄여준다."
+            },
+            {
+                question: "폐업하는 사업자가 잔존재화를 공급하는 경우 시가를 공급가액으로 한다. (O/X)",
+                answer: "O",
+                explanation: "폐업 시 잔존재화는 과세대상이며, 그 공급가액은 해당 재화의 시가로 한다."
+            },
+            {
+                question: "부동산 임대용역에 대한 간주임대료는 보증금에 정기예금 이자율을 곱하여 계산한다. (O/X)",
+                answer: "O",
+                explanation: "부동산 임대 보증금에 대한 간주임대료는 보증금에 정기예금 이자율을 곱하여 계산한다."
+            },
+            {
+                question: "세금계산서는 공급자 보관용 1부, 공급받는 자 보관용 1부로 구성된다. (O/X)",
+                answer: "X",
+                explanation: "세금계산서는 과거에는 3부(공급자 보관용, 공급받는 자 보관용, 세무서 제출용)였으나, 현재는 전자세금계산서 발급이 의무화되면서 2부(공급자용, 공급받는 자용)로 발급되고 전산으로 국세청에 전송된다."
+            },
+            {
+                question: "세금계산서의 필요적 기재사항 중 하나라도 누락되면 해당 세금계산서는 효력이 없다. (O/X)",
+                answer: "O",
+                explanation: "세금계산서의 필요적 기재사항(등록번호, 성명 또는 명칭, 공급가액과 세액, 작성연월일) 중 하나라도 누락되거나 사실과 다르면 효력이 없다."
+            },
+            {
+                question: "세금계산서는 공급자가 공급받는 자에게 재화 또는 용역의 공급시기에 발급하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "세금계산서 발급 시기는 원칙적으로 재화 또는 용역의 공급시기이다."
+            },
+            {
+                question: "예외적으로 재화 또는 용역의 공급시기 전에 세금계산서를 발급할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "일정 요건을 충족하는 경우 재화 또는 용역의 공급시기 전이라도 세금계산서를 발급할 수 있다 (예: 세금계산서 선발급 특례)."
+            },
+            {
+                question: "영세율 적용대상 거래는 세금계산서 발급의무가 면제된다. (O/X)",
+                answer: "X",
+                explanation: "영세율 적용대상 거래 중 내국신용장 등에 의한 공급은 세금계산서 발급의무가 있으며, 수출의 경우에도 영세율이 적용되는 것이지 발급의무가 면제되는 것은 아니다."
+            },
+            {
+                question: "매입자발행 세금계산서는 공급자가 세금계산서를 발급하지 않는 경우 매입자가 관할 세무서장의 확인을 받아 발급하는 제도이다. (O/X)",
+                answer: "O",
+                explanation: "매입자발행 세금계산서는 공급자가 세금계산서를 발급하지 않을 때, 매입자가 세무서장의 확인을 받아 세금계산서를 발행하는 제도이다."
+            },
+            {
+                question: "면세사업자가 발행하는 계산서는 세금계산서와 동일한 효력을 가진다. (O/X)",
+                answer: "X",
+                explanation: "계산서는 부가가치세가 면제되는 재화 또는 용역의 공급 시 발행하는 문서로, 세금계산서와 달리 세액이 기재되지 않으므로 매입세액 공제의 효력이 없다."
+            },
+            {
+                question: "전자세금계산서 의무발급대상 사업자가 전자세금계산서가 아닌 종이세금계산서를 발급하는 경우 가산세가 부과된다. (O/X)",
+                answer: "O",
+                explanation: "전자세금계산서 의무발급대상자가 종이세금계산서를 발급하면 가산세가 부과된다."
+            },
+            {
+                question: "수정세금계산서는 당초 세금계산서의 기재사항에 착오 또는 오류가 있는 경우에만 발급한다. (O/X)",
+                answer: "X",
+                explanation: "수정세금계산서는 착오 또는 오류 외에도 계약의 해제, 환입, 할인 등 다양한 사유로 인해 당초 공급가액이나 세액이 변경될 때 발급한다."
+            },
+            {
+                question: "신용카드 매출전표는 세금계산서의 기능을 대체할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "신용카드 매출전표 등은 일정 요건을 충족하는 경우 세금계산서의 기능을 대신하여 매입세액 공제를 받을 수 있다."
+            },
+            {
+                question: "영세율은 소비지국 과세원칙을 구현하기 위한 제도이다. (O/X)",
+                answer: "O",
+                explanation: "영세율은 수출 등 소비지국에서 과세되도록 하여 이중과세를 방지하고 국제적 이중과세 조정을 통해 수출을 장려하는 제도이다."
+            },
+            {
+                question: "면세는 부가가치세 과세대상에서 제외하는 것으로 부가가치세 역진성 완화를 위한 제도이다. (O/X)",
+                answer: "O",
+                explanation: "면세는 생활필수품 등에 대해 부가가치세 부담을 면제하여 저소득층의 세금 부담을 경감하고 부가가치세의 역진성을 완화하기 위한 제도이다."
+            },
+            {
+                question: "영세율 적용대상 거래는 수출하는 재화 또는 용역에 한정된다. (O/X)",
+                answer: "X",
+                explanation: "영세율은 수출 외에도 외국항행용역, 국내에 사업장이 없는 비거주자 등에게 공급하는 용역 등도 적용대상이다."
+            },
+            {
+                question: "외국항행 용역은 영세율 적용대상이다. (O/X)",
+                answer: "O",
+                explanation: "외국항행 용역은 영세율 적용대상이다."
+            },
+            {
+                question: "국외에서 공급하는 용역은 영세율 적용대상이 아니다. (O/X)",
+                answer: "X",
+                explanation: "국외에서 공급하는 용역은 원칙적으로 영세율 적용대상이다."
+            },
+            {
+                question: "국내 사업장이 없는 비거주자 또는 외국법인에게 공급하는 특정 용역은 영세율 적용대상이다. (O/X)",
+                answer: "O",
+                explanation: "국내 사업장이 없는 비거주자 또는 외국법인에게 공급하는 용역 중 일정 요건을 충족하는 경우 영세율이 적용된다."
+            },
+            {
+                question: "면세사업자가 영세율 적용대상 거래를 하는 경우 매입세액을 공제받을 수 없다. (O/X)",
+                answer: "O",
+                explanation: "면세사업자는 부가가치세 납세의무가 없으므로 매입세액을 공제받을 수 없다. 영세율은 납세의무자에게 적용되는 개념이다."
+            },
+            {
+                question: "농산물, 축산물, 수산물, 임산물로서 미가공식료품은 부가가치세 면세대상이다. (O/X)",
+                answer: "O",
+                explanation: "미가공 식료품은 생활필수품에 해당하여 면세된다."
+            },
+            {
+                question: "국민주택 규모 이하의 주택 임대용역은 부가가치세 과세대상이다. (O/X)",
+                answer: "X",
+                explanation: "국민주택 규모 이하의 주택 임대용역은 부가가치세 면세대상이다."
+            },
+            {
+                question: "토지의 공급은 부가가치세 면세대상이다. (O/X)",
+                answer: "O",
+                explanation: "토지의 공급은 부가가치세 면세대상이다."
+            },
+            {
+                question: "비영리법인 등이 공급하는 학술연구 용역은 면세대상이다. (O/X)",
+                answer: "O",
+                explanation: "비영리법인 등이 공급하는 학술연구 용역은 면세대상이다."
+            },
+            {
+                question: "병원, 의원 등에서 제공하는 의료보건 용역은 면세대상이다. (O/X)",
+                answer: "O",
+                explanation: "병원, 의원 등에서 제공하는 의료보건 용역은 국민의 건강과 관련되므로 면세대상이다."
+            },
+            {
+                question: "대중교통에 의한 여객운송 용역은 면세대상이다. (O/X)",
+                answer: "O",
+                explanation: "대중교통(버스, 지하철 등)에 의한 여객운송 용역은 면세대상이다."
+            },
+            {
+                question: "금융보험 용역은 면세대상이다. (O/X)",
+                answer: "O",
+                explanation: "금융보험 용역은 면세대상이다."
+            },
+            {
+                question: "우표, 수입인지 등은 면세대상이다. (O/X)",
+                answer: "O",
+                explanation: "우표, 수입인지 등은 면세대상이다."
+            },
+            {
+                question: "예술창작품, 문화행사, 아마추어 운동경기 등은 면세대상이다. (O/X)",
+                answer: "O",
+                explanation: "예술창작품, 문화행사, 아마추어 운동경기 등은 면세대상이다."
+            },
+            {
+                question: "저술가, 작곡가 등이 제공하는 용역은 면세대상이다. (O/X)",
+                answer: "X",
+                explanation: "저술가, 작곡가 등이 독립적으로 제공하는 용역은 과세대상이다. (단, 학술, 예술 등 특정 분야는 면세될 수 있음)"
+            },
+            {
+                question: "교육 용역 중 주무관청의 허가를 받거나 등록된 학원 등이 제공하는 용역은 면세대상이다. (O/X)",
+                answer: "O",
+                explanation: "주무관청의 인허가를 받은 학원 등의 교육 용역은 면세대상이다."
+            },
+            {
+                question: "국민주택 규모를 초과하는 주택 임대용역은 면세대상이다. (O/X)",
+                answer: "X",
+                explanation: "국민주택 규모를 초과하는 주택 임대용역은 과세대상이다."
+            },
+            {
+                question: "농업경영 및 축산업 경영에 필요한 부가가치세 면세대상 재화의 공급은 부가가치세가 과세된다. (O/X)",
+                answer: "X",
+                explanation: "농업 및 축산업 경영에 필요한 면세대상 재화의 공급은 면세된다."
+            },
+            {
+                question: "면세사업자가 과세사업으로 전환하는 경우 면세기간 중의 재화에 대하여는 부가가치세가 과세되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "면세사업자가 과세사업으로 전환하더라도 면세기간 중에 매입한 재화는 부가가치세가 과세되지 않는다. (다만, 의제매입세액 불공제 등 매입세액 조정은 발생할 수 있다.)"
+            },
+            {
+                question: "매입세액은 매출세액에서 공제되는 세액을 말한다. (O/X)",
+                answer: "O",
+                explanation: "매입세액은 사업자가 재화 또는 용역을 공급받을 때 부담한 부가가치세로, 매출세액에서 공제된다."
+            },
+            {
+                question: "세금계산서에 의하여 확인되는 매입세액은 전액 공제 가능하다. (O/X)",
+                answer: "X",
+                explanation: "세금계산서에 의하여 확인되는 매입세액이라도 접대비 관련, 비영업용 소형승용차 관련 등 불공제 사유에 해당하는 경우 공제되지 않는다."
+            },
+            {
+                question: "접대비 관련 매입세액은 매출세액에서 공제되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "접대비 관련 매입세액은 매입세액 불공제 대상이다."
+            },
+            {
+                question: "비영업용 소형승용자동차의 구입 및 유지에 관련된 매입세액은 공제되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "비영업용 소형승용차(개별소비세 과세대상 자동차)의 구입 및 유지 관련 매입세액은 공제되지 않는다."
+            },
+            {
+                question: "면세사업 관련 매입세액은 공제되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "면세사업자는 부가가치세 납세의무가 없으므로 면세사업과 관련된 매입세액은 공제받을 수 없다."
+            },
+            {
+                question: "사업자등록을 하지 아니한 자가 사업과 관련하여 매입한 재화에 대한 매입세액은 공제되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "사업자등록을 하지 않은 사업자의 매입세액은 원칙적으로 공제되지 않는다."
+            },
+            {
+                question: "토지의 조성 등을 위한 자본적 지출에 관련된 매입세액은 공제되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "토지는 부가가치세가 면세되는 재화이므로 토지의 조성 등 자본적 지출 관련 매입세액은 불공제된다."
+            },
+            {
+                question: "사업용 자산의 임대용역에 대한 매입세액은 공제되지 않는다. (O/X)",
+                answer: "X",
+                explanation: "사업용 자산의 임대용역에 대한 매입세액은 공제 가능하다. (면세사업전용 등 불공제 사유에 해당하지 않는 한)"
+            },
+            {
+                question: "매입세액 불공제 사유에 해당하는 경우에도 세금계산서 등 적격증빙을 수취하면 매입세액 공제가 가능하다. (O/X)",
+                answer: "X",
+                explanation: "매입세액 불공제 사유에 해당하는 경우에는 적격증빙을 수취하더라도 매입세액 공제를 받을 수 없다."
+            },
+            {
+                question: "간이과세자는 원칙적으로 매입세액 공제가 불가능하다. (O/X)",
+                answer: "X",
+                explanation: "간이과세자는 공급대가에 업종별 부가가치율과 세율을 곱하여 납부세액을 계산하지만, 의제매입세액 공제 등 일부 매입세액 공제가 가능하다. (세금계산서 등을 수취한 매입세액에 대해서는 납부세액에 일정 비율을 곱하여 공제)"
+            },
+            {
+                question: "재고매입세액 공제는 일반과세자에서 간이과세자로 변경되는 경우 적용된다. (O/X)",
+                answer: "X",
+                explanation: "재고매입세액 공제는 간이과세자에서 일반과세자로 변경되는 경우 적용된다. (재고납부세액은 일반과세자에서 간이과세자로 변경될 때 발생)"
+            },
+            {
+                question: "대손세액 공제는 대손이 확정된 날이 속하는 과세기간의 매출세액에서 공제된다. (O/X)",
+                answer: "O",
+                explanation: "대손세액 공제는 대손이 확정된 날이 속하는 과세기간의 매출세액에서 공제한다."
+            },
+            {
+                question: "대손세액 공제는 부가가치세 확정신고 기한이 지난 날부터 5년 이내에 신청하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "대손세액 공제는 대손 확정일이 속하는 과세기간의 확정신고 시 신청하여야 한다. (기한 제한이 5년이 아님)"
+            },
+            {
+                question: "대손세액 공제를 받은 사업자가 대손금액의 전부 또는 일부를 회수한 경우 회수된 금액에 해당하는 대손세액을 납부세액에 가산하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "대손세액 공제를 받은 후 대손금이 회수되면, 회수된 대손금에 해당하는 대손세액을 납부세액에 가산해야 한다."
+            },
+            {
+                question: "의제매입세액 공제는 면세 농산물 등을 원재료로 하여 제조·가공한 재화 또는 용역의 공급에 대하여 적용된다. (O/X)",
+                answer: "O",
+                explanation: "의제매입세액 공제는 면세 농산물 등을 원재료로 하여 과세 재화 또는 용역을 공급하는 사업자에게 적용된다."
+            },
+            {
+                question: "의제매입세액 공제는 농어민으로부터 직접 공급받은 경우에만 적용된다. (O/X)",
+                answer: "X",
+                explanation: "의제매입세액 공제는 농어민 외에도 면세사업자로부터 면세 농산물 등을 공급받은 경우에도 적용될 수 있다."
+            },
+            {
+                question: "의제매입세액 공제율은 사업자 유형에 따라 차등 적용된다. (O/X)",
+                answer: "O",
+                explanation: "의제매입세액 공제율은 과세사업자, 간이과세자, 제조업자, 음식점업자 등 사업자 유형에 따라 다르게 적용된다."
+            },
+            {
+                question: "재활용 폐자원 등 의제매입세액 공제율은 100분의 10이다. (O/X)",
+                answer: "X",
+                explanation: "재활용 폐자원 등 의제매입세액 공제율은 원칙적으로 100분의 3이다. (일반사업자 기준)"
+            },
+            {
+                question: "사업자가 면세되는 재화를 매입하여 과세되는 재화를 생산하는 경우 의제매입세액 공제를 받을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "면세되는 재화를 매입하여 과세되는 재화를 생산하는 경우 의제매입세액 공제를 받을 수 있다."
+            },
+            {
+                question: "공통매입세액 안분 계산은 과세사업과 면세사업에 공통으로 사용되는 재화 또는 용역의 매입세액을 안분하는 것이다. (O/X)",
+                answer: "O",
+                explanation: "공통매입세액 안분 계산은 과세사업과 면세사업에 공통으로 사용되어 구분이 어려운 매입세액을 합리적인 기준에 따라 배분하는 절차이다."
+            },
+            {
+                question: "공통매입세액 안분 계산 시 사용되는 비율은 총공급가액에 대한 과세공급가액의 비율이다. (O/X)",
+                answer: "O",
+                explanation: "공통매입세액 안분 계산은 원칙적으로 총공급가액에 대한 과세공급가액의 비율로 안분한다."
+            },
+            {
+                question: "공통매입세액 안분 계산을 생략할 수 있는 경우는 직전 과세기간의 총공급가액이 5천만원 미만인 경우이다. (O/X)",
+                answer: "X",
+                explanation: "공통매입세액 안분 계산 생략 사유 중 하나는 해당 과세기간의 총공급가액 중 면세공급가액이 5% 미만이고, 해당 공통매입세액이 500만원 미만인 경우이다. (5천만원 미만이 아님)"
+            },
+            {
+                question: "과세사업에 사용하던 자산을 면세사업에 전용하는 경우 매입세액 공제받은 부분에 대한 추가 납부세액이 발생한다. (O/X)",
+                answer: "O",
+                explanation: "과세사업에 사용하던 자산을 면세사업에 전용하면 당초 공제받았던 매입세액을 다시 납부해야 한다 (과세전환 시 과세)."
+            },
+            {
+                question: "면세사업에 사용하던 자산을 과세사업에 전용하는 경우 매입세액 공제를 받을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "면세사업에 사용하던 자산을 과세사업에 전용하는 경우, 해당 자산의 잔존가액에 대해 매입세액 공제를 받을 수 있다 (재화의 공급으로 의제하여 매입세액 공제)."
+            },
+            {
+                question: "감가상각자산의 감가율은 건물 또는 구축물은 10%, 그 밖의 자산은 25%이다. (O/X)",
+                answer: "X",
+                explanation: "부가가치세법상 감가상각자산의 감가율은 건물 또는 구축물은 5%, 그 밖의 자산은 25%이다."
+            },
+            {
+                question: "납부세액은 매출세액에서 매입세액을 공제하여 계산한다. (O/X)",
+                answer: "O",
+                explanation: "납부세액은 매출세액에서 매입세액을 공제하여 계산한다."
+            },
+            {
+                question: "사업자가 세금계산서를 발급하지 아니하거나 사실과 다른 세금계산서를 발급한 경우 가산세가 부과된다. (O/X)",
+                answer: "O",
+                explanation: "세금계산서 미발급 또는 허위 발급 시 가산세가 부과된다."
+            },
+            {
+                question: "전자세금계산서 의무발급대상 사업자가 전자세금계산서 외의 세금계산서를 발급한 경우 공급가액의 1%의 가산세가 부과된다. (O/X)",
+                answer: "O",
+                explanation: "전자세금계산서 의무발급대상자가 전자세금계산서 외의 방법으로 발급 시 공급가액의 1%의 가산세가 부과된다."
+            },
+            {
+                question: "부가가치세 조기환급은 영세율 적용대상 거래에 대해서만 가능하다. (O/X)",
+                answer: "X",
+                explanation: "부가가치세 조기환급은 영세율 적용 외에 시설투자, 재화의 수입 등으로 인한 환급세액 발생 시에도 가능하다."
+            },
+            {
+                question: "재화의 수출 시 영세율이 적용되는 경우, 수출자는 세관장에게 영세율 적용을 신청해야 한다. (O/X)",
+                answer: "X",
+                explanation: "재화의 수출은 별도의 영세율 적용 신청 없이 세금계산서 발급의무가 면제된다."
+            },
+            {
+                question: "간이과세자는 예정신고의무가 없다. (O/X)",
+                answer: "O",
+                explanation: "간이과세자는 원칙적으로 예정신고의무가 없으며, 1년에 한 번 확정신고만 하면 된다. (다만, 예정부과고지 제도는 있음)"
+            },
+            {
+                question: "일반과세자의 예정고지세액은 직전 과세기간의 납부세액의 50%이다. (O/X)",
+                answer: "O",
+                explanation: "일반과세자의 예정고지세액은 직전 과세기간의 납부세액의 50%를 기준으로 한다."
+            },
+            {
+                question: "예정신고 시 납부세액이 없는 경우에도 신고는 하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "납부할 세액이 없더라도 신고 의무는 있다."
+            },
+            {
+                question: "환급세액은 확정신고기간 종료 후 30일 이내에 환급한다. (O/X)",
+                answer: "O",
+                explanation: "일반환급은 확정신고기간 종료 후 30일 이내에 환급한다. (조기환급은 15일 이내)"
+            },
+            {
+                question: "사업의 종류를 변경하는 경우 사업자등록 정정신고를 하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "사업의 종류를 변경하면 사업자등록 정정신고를 해야 한다."
+            },
+            {
+                question: "사업장을 이전하는 경우 사업자등록 정정신고를 하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "사업장 이전 시 사업자등록 정정신고를 해야 한다."
+            },
+            {
+                question: "부가가치세 신고는 사업장 소재지 관할 세무서에 하는 것이 원칙이다. (O/X)",
+                answer: "O",
+                explanation: "부가가치세는 사업장별 과세원칙에 따라 각 사업장 소재지 관할 세무서에 신고하는 것이 원칙이다."
+            },
+            {
+                question: "사업자 단위 과세사업자는 본점 또는 주사무소 소재지 관할 세무서에 신고한다. (O/X)",
+                answer: "O",
+                explanation: "사업자 단위 과세사업자는 본점 또는 주사무소에서 일괄하여 신고 납부한다."
+            },
+            {
+                question: "폐업하는 사업자는 폐업일로부터 25일 이내에 부가가치세 확정신고를 하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "폐업하는 사업자는 폐업일이 속하는 달의 다음 달 25일이 아닌, 폐업일로부터 25일 이내에 최종 부가가치세 확정신고를 하여야 한다."
+            },
+            {
+                question: "간이과세자의 납부세액은 공급대가에 업종별 부가가치율을 곱한 금액이다. (O/X)",
+                answer: "X",
+                explanation: "간이과세자의 납부세액은 공급대가에 업종별 부가가치율과 세율(10%)을 곱한 금액이다."
+            },
+            {
+                question: "간이과세자의 납부세액은 공급대가에 업종별 부가가치율과 세율을 곱한 금액이다. (O/X)",
+                answer: "O",
+                explanation: "간이과세자의 납부세액은 공급대가(과세표준)에 업종별 부가가치율을 곱하고 다시 10%의 세율을 곱하여 계산한다."
+            },
+            {
+                question: "간이과세자의 과세기간은 1월 1일부터 12월 31일까지이다. (O/X)",
+                answer: "O",
+                explanation: "간이과세자의 과세기간은 매년 1월 1일부터 12월 31일까지 1년이다."
+            },
+            {
+                question: "간이과세자는 공급대가 합계액이 연간 8천만원 미만인 개인사업자이다. (O/X)",
+                answer: "O",
+                explanation: "간이과세자는 직전연도 공급대가 합계액이 8천만원 미만인 개인사업자이다. (일부 제외 업종 있음)"
+            },
+            {
+                question: "간이과세 포기신고를 한 경우 포기하는 달의 다음 달 1일부터 일반과세자로 전환된다. (O/X)",
+                answer: "O",
+                explanation: "간이과세자가 포기신고를 하면 그 포기 신고일이 속하는 달의 다음 달 1일부터 일반과세자로 전환된다."
+            },
+            {
+                question: "간이과세자는 세금계산서를 발급할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "간이과세자 중 직전연도 공급대가 합계액이 4,800만원 이상인 사업자는 세금계산서를 발급할 수 있다."
+            },
+            {
+                question: "간이과세자가 세금계산서를 발급한 경우, 발급한 세금계산서의 매입세액은 공제되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "간이과세자는 자신이 발급한 세금계산서의 매입세액을 공제받는 것이 아니라, 수취한 세금계산서상의 매입세액에 일정 비율을 곱하여 납부세액에서 공제한다."
+            },
+            {
+                question: "간이과세자가 일반과세자로 전환되는 경우 재고납부세액을 계산하여 납부하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "간이과세자에서 일반과세자로 전환되는 경우, 전환 시점에 보유하고 있는 재고품 등에 대해 재고매입세액을 계산하여 공제받을 수 있다."
+            },
+            {
+                question: "간이과세자에서 일반과세자로 전환되는 경우 전환 후의 매입세액은 공제 가능하다. (O/X)",
+                answer: "O",
+                explanation: "일반과세자로 전환된 후의 매입세액은 일반과세자 규정에 따라 공제 가능하다."
+            },
+            {
+                question: "간이과세자는 부가가치세 환급이 불가능하다. (O/X)",
+                answer: "O",
+                explanation: "간이과세자는 원칙적으로 부가가치세 환급이 불가능하다. (예외적으로 시설투자 등으로 인한 경우 조기환급이 가능할 수 있다.)"
+            },
+            {
+                question: "부가가치세는 원칙적으로 역진세적 성격을 가진다. (O/X)",
+                answer: "O",
+                explanation: "부가가치세는 세율이 단일하므로 소득이 적은 사람이 소득에 비례하여 더 많은 세금을 내는 것처럼 느껴지는 역진세적 성격을 가진다. (이를 보완하기 위해 면세 제도가 있다.)"
+            },
+            {
+                question: "부가가치세는 최종 소비자가 부담하는 간접세이다. (O/X)",
+                answer: "O",
+                explanation: "부가가치세는 최종 소비자가 부담하고 사업자가 징수하여 납부하는 간접세이다."
+            },
+            {
+                question: "영세율은 완전 면세, 면세는 불완전 면세라고 할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "영세율은 매출에 대해 0% 세율을 적용하여 매입세액까지 환급받으므로 완전 면세, 면세는 매출에 대해 과세하지 않지만 매입세액은 공제받지 못하므로 불완전 면세라고 한다."
+            },
+            {
+                question: "사업자가 재화를 인도하기 전에 대가의 전부 또는 일부를 받고 그 받은 대가에 대하여 세금계산서를 발급한 경우 그 발급한 때를 재화의 공급시기로 본다. (O/X)",
+                answer: "O",
+                explanation: "재화 또는 용역의 공급시기 전이라도 대가의 전부 또는 일부를 받고 세금계산서를 발급하면 그 발급한 때를 공급시기로 본다 (세금계산서 선발급 특례)."
+            },
+            {
+                question: "사업의 폐지 시 잔존하는 재화는 과세사업에 사용한 것이더라도 재화의 공급으로 본다. (O/X)",
+                answer: "O",
+                explanation: "사업을 폐지할 때 남아있는 재화(잔존재화)는 사업자 본인에게 공급된 것으로 보아 부가가치세가 과세된다."
+            },
+            {
+                question: "공동사업자가 사업을 시작할 때 사업자등록은 공동사업자 대표자 한 명으로 한다. (O/X)",
+                answer: "X",
+                explanation: "공동사업자는 공동사업자 전원의 명의로 사업자등록을 해야 한다."
+            },
+            {
+                question: "특례규정에 따라 전자세금계산서 발급의무를 면제받는 사업자는 종이세금계산서를 발급할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "전자세금계산서 발급 의무가 면제되는 사업자는 종이세금계산서를 발급할 수 있다. (예: 개인사업자 중 일정 기준 이하 사업자)"
+            },
+            {
+                question: "세관장이 수입하는 재화에 대하여 세금계산서를 발급하는 경우, 공급가액은 관세의 과세가격에 관세 및 개별소비세 등을 가산한 금액이다. (O/X)",
+                answer: "O",
+                explanation: "수입 재화에 대한 세금계산서의 공급가액은 관세의 과세가격에 관세, 개별소비세 등을 가산한 금액이다."
+            },
+            {
+                question: "겸영사업자가 재화를 공급하는 경우 그 재화가 과세사업과 면세사업에 공통으로 사용되었을 때 과세사업에 관련된 부분만 부가가치세가 과세된다. (O/X)",
+                answer: "O",
+                explanation: "겸영사업자의 공통 사용 재화 공급 시 과세사업에 관련된 부분만 부가가치세가 과세된다."
+            },
+            {
+                question: "대손이 확정되어 대손세액 공제를 받은 후 회수된 대손금액은 과세표준에 포함되지 않는다. (O/X)",
+                answer: "X",
+                explanation: "대손세액 공제를 받은 후 회수된 대손금액은 다시 과세표준에 포함되어 납부세액이 가산된다."
+            },
+            {
+                question: "부동산 임대용역에 대한 간주임대료를 계산할 때, 임대보증금의 100분의 50에 해당하는 금액은 공제하지 않는다. (O/X)",
+                answer: "X",
+                explanation: "부동산 임대용역에 대한 간주임대료 계산 시, 임대보증금의 100분의 50에 해당하는 금액을 공제하는 특례 규정은 현재 적용되지 않는다."
+            },
+            {
+                question: "조세범 처벌법에 따른 처벌을 받은 자는 부가가치세 감면 대상에서 제외된다. (O/X)",
+                answer: "O",
+                explanation: "조세범 처벌법에 따라 처벌을 받은 자는 일정 기간 동안 세금 감면 대상에서 제외될 수 있다."
+            },
+            {
+                question: "세금계산서 미발급 가산세는 공급가액의 2%이다. (O/X)",
+                answer: "X",
+                explanation: "세금계산서 미발급 가산세는 공급가액의 2%이다. (과세기간에 따라 상이할 수 있으나, 일반적으로는 2% 이상이다.)"
+            },
+            {
+                question: "사업자가 사업자등록을 신청하지 아니하고 재화 또는 용역을 공급하는 경우 미등록 가산세가 부과된다. (O/X)",
+                answer: "O",
+                explanation: "사업자등록 없이 사업을 하는 경우 미등록 가산세가 부과된다."
+            },
+            {
+                question: "부가가치세 예정고지세액은 직전 과세기간의 납부세액을 기준으로 산정하며, 해당 예정신고기간의 실적을 반영하지 않는다. (O/X)",
+                answer: "X",
+                explanation: "예정고지세액은 직전 과세기간을 기준으로 하지만, 사업 실적이 부진한 경우 등 일정 요건 충족 시 예정신고를 통해 실제 실적을 반영하여 신고할 수 있다."
+            },
+            {
+                question: "영세율 적용을 받는 사업자는 매입세액 환급을 조기에 받을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "영세율 적용 사업자는 매입세액이 발생할 경우 조기환급을 받을 수 있어 자금 부담을 경감할 수 있다."
+            },
+            {
+                question: "고정자산 매각에 대한 세금계산서 발급은 필수사항이다. (O/X)",
+                answer: "O",
+                explanation: "사업자가 고정자산을 매각하는 경우에도 재화의 공급에 해당하므로 세금계산서를 발급해야 한다."
+            },
+            {
+                question: "법인이 신설되는 경우 사업자등록은 법인설립 등기일로부터 20일 이내에 하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "법인 신설의 경우 사업개시일로부터 20일 이내에 사업자등록을 하여야 한다. (법인설립등기일이 아님)"
+            },
+            {
+                question: "폐업 시 잔존재화는 취득가액을 기준으로 과세된다. (O/X)",
+                answer: "X",
+                explanation: "폐업 시 잔존재화는 시가를 기준으로 과세된다."
+            },
+            {
+                question: "사업자가 겸영사업자로서 과세사업과 면세사업을 겸영하는 경우 공통매입세액은 총공급가액 기준으로 안분한다. (O/X)",
+                answer: "O",
+                explanation: "겸영사업자의 공통매입세액 안분은 원칙적으로 총공급가액(과세+면세)에 대한 과세공급가액 비율로 안분한다."
+            },
+            {
+                question: "간이과세자가 일반과세자로 변경된 경우, 변경되기 전에 매입하여 보유하고 있는 재화에 대한 매입세액은 공제 가능하다. (O/X)",
+                answer: "O",
+                explanation: "간이과세자에서 일반과세자로 전환되는 경우 재고매입세액 공제를 통해 전환 전 매입세액에 대해 공제받을 수 있다."
+            },
+            {
+                question: "신용카드 매출전표를 발행한 경우 부가가치세 신고 시 별도의 세금계산서 합계표를 제출할 필요가 없다. (O/X)",
+                answer: "X",
+                explanation: "신용카드 매출전표를 발행했더라도 부가가치세 신고 시에는 신용카드 매출전표 등 발행금액 집계표를 제출해야 한다. (세금계산서 합계표와는 별개)"
+            },
+            {
+                question: "부가가치세법상 사업의 양도는 원칙적으로 재화의 공급으로 보지 않는다. (O/X)",
+                answer: "O",
+                explanation: "사업의 포괄양도는 재화의 공급으로 보지 않아 부가가치세가 과세되지 않는다."
+            },
+            {
+                question: "건설자금 이자는 부가가치세 과세표준에 포함되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "건설자금 이자는 과세되는 재화 또는 용역의 공급 대가와 직접 관련되지 않으므로 과세표준에 포함되지 않는다."
+            },
+            {
+                question: "용역을 공급하고 그 대가를 외국 통화로 받는 경우, 환율은 공급시기의 기준환율 또는 재정환율을 적용한다. (O/X)",
+                answer: "O",
+                explanation: "외화로 대가를 받는 경우, 원칙적으로 공급시기의 기준환율 또는 재정환율을 적용한다."
+            },
+            {
+                question: "수출재화의 선적일이 불분명한 경우에는 수출신고수리일을 공급시기로 본다. (O/X)",
+                answer: "X",
+                explanation: "수출재화의 선적일이 불분명한 경우에는 세관에서 발급하는 수출면허상의 선적일을 공급시기로 본다. (수출신고수리일이 아님)"
+            },
+            {
+                question: "의제매입세액 공제 대상이 되는 원재료는 매입세금계산서 또는 계산서에 의하여 확인되어야 한다. (O/X)",
+                answer: "X",
+                explanation: "의제매입세액 공제 대상 원재료는 매입세금계산서나 계산서 외에도 영수증 등으로도 확인될 수 있다. (농어민 직접 공급 시)"
+            },
+            {
+                question: "공동사업자가 해산하는 경우 잔존재화는 각 공동사업자에게 분배되는 것으로 보아 과세된다. (O/X)",
+                answer: "O",
+                explanation: "공동사업 해산 시 잔존재화는 각 공동사업자에게 재화가 공급된 것으로 보아 부가가치세가 과세된다."
+            },
+            {
+                question: "부가가치세 면세는 단계별로 세액 공제 없이 총액에 대한 과세가 이루어진다. (O/X)",
+                answer: "X",
+                explanation: "부가가치세 면세는 해당 단계에서만 세액이 면제되는 것이고, 매입세액 불공제로 인해 총액 과세는 아니다. (불완전 면세의 특징)"
+            },
+            {
+                question: "사업자가 재화를 직매장으로 반출하는 것은 사업장 간의 재화 이동에 불과하므로 재화의 공급으로 보지 않는다. (O/X)",
+                answer: "X",
+                explanation: "직매장 반출은 사업장별 과세원칙에 따라 재화의 공급으로 본다. 다만, 주사업장 총괄납부 또는 사업자단위과세 시에는 공급으로 보지 않는다."
+            }
+        ];
+
+        /**
+         * Loads embedded quiz data synchronously.
+         * @returns {Promise<Array>} Quiz data array
+         */
+        async function loadQuizData() {
+            return vatQuizData; // 부가가치세법 퀴즈 데이터로 변경
+        }
+
+        // ============================ Quiz start and initialization ============================
+        /**
+         * Initializes and starts the quiz.
+         * @param {number} numQuestions - Number of questions to play
+         */
+        async function startQuiz(numQuestions) {
+            allQuizData = await loadQuizData(); // Load embedded quiz data
+            if (allQuizData.length === 0) {
+                showMessage("앗! 퀴즈 문제를 찾을 수 없어... 😥");
+                showScreen('start');
+                return;
+            }
+
+            // If requested number of questions is more than total questions, use all questions
+            if (numQuestions > allQuizData.length) {
+                quizTotalQuestions = allQuizData.length;
+                showMessage(`요청한 문제 수(${numQuestions}개)가 전체 문제 수(${allQuizData.length}개)보다 많습니다. 전체 ${quizTotalQuestions}문제를 사용해요!`);
+            } else {
+                quizTotalQuestions = numQuestions;
+            }
+
+            // Shuffle all questions and slice by requested number
+            const shuffledAllQuestions = [...allQuizData];
+            shuffleArray(shuffledAllQuestions);
+            currentQuizData = shuffledAllQuestions.slice(0, quizTotalQuestions);
+
+            // Initialize
+            currentQuestionIndex = 0;
+            score = 0; // Reset raw score
+            incorrectQuestions = [];
+            selectedChoice = null;
+            isAnswerChecked = false; // Reset answer checked flag for the *new* quiz
+            timer = 0; // Reset timer
+            startTimer(); // Start the timer
+
+            showScreen('quiz');
+            updateQuizHeaderVisibility(true); // Show quiz header
+            questionChoicesArea.classList.remove('hidden'); // Show choices area
+            quizControls.classList.remove('hidden'); // Show quiz control buttons
+            displayQuestion();
+            playStartSound(); // Play sound on quiz start
+        }
+
+        /**
+         * Restarts the quiz (full or incorrect questions).
+         * @param {number|'incorrect'} mode - Number of questions to restart with, or 'incorrect' for incorrect questions
+         */
+        function restartQuiz(mode) {
+            if (mode === 'incorrect') {
+                currentQuizData = [...incorrectQuestions]; // Set quiz data to incorrect questions
+                if (currentQuizData.length === 0) {
+                    showMessage('와! 틀린 문제가 하나도 없어! 대단해! 👍');
+                    showScreen('end'); // Stay on end screen if no incorrect questions
+                    return;
+                }
+                shuffleArray(currentQuizData); // Shuffle incorrect questions too
+                quizTotalQuestions = currentQuizData.length;
+            } else {
+                const shuffledAllQuestions = [...allQuizData];
+                shuffleArray(shuffledAllQuestions);
+                currentQuizData = shuffledAllQuestions.slice(0, quizTotalQuestions);
+            }
+
+            // Initialize
+            currentQuestionIndex = 0;
+            score = 0; // Reset raw score
+            incorrectQuestions = [];
+            selectedChoice = null;
+            isAnswerChecked = false; // Reset answer checked flag for the *new* quiz
+            timer = 0; // Reset timer
+            startTimer(); // Start the timer
+
+            showScreen('quiz');
+            updateQuizHeaderVisibility(true); // Show quiz header
+            questionChoicesArea.classList.remove('hidden'); // Show choices area
+            quizControls.classList.remove('hidden'); // Show quiz control buttons
+            displayQuestion();
+            playStartSound(); // Play sound on quiz restart
+        }
+
+        /**
+         * Starts the review mode for incorrect questions.
+         */
+        function startReviewMode() {
+            restartQuiz('incorrect'); // Call restart quiz with 'incorrect' mode
+        }
+
+        // ============================ Timer functions ============================
+        /**
+         * Starts the quiz timer.
+         */
+        function startTimer() {
+            if (timerIntervalId) {
+                clearInterval(timerIntervalId);
+            }
+            timerIntervalId = setInterval(() => {
+                timer++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        /**
+         * Stops the quiz timer.
+         */
+        function stopTimer() {
+            clearInterval(timerIntervalId);
+            timerIntervalId = null;
+        }
+
+        /**
+         * Updates the timer display in MM:SS format.
+         */
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // ============================ Display functions ============================
+        /**
+         * Displays the current question and its choices.
+         */
+        function displayQuestion() {
+            // Update question count display
+            questionCount.textContent = `문제 ${currentQuestionIndex + 1} / ${quizTotalQuestions}`;
+            scoreDisplay.textContent = `별 점수: ${score} ✨`; // Displays raw score during quiz
+
+            const question = currentQuizData[currentQuestionIndex];
+            questionText.textContent = question.question;
+            
+            // Clear previous choices and reset styles
+            questionChoicesArea.innerHTML = `
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="O">O (동그라미)</div>
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="X">X (엑스)</div>
+            `;
+
+            // Attach event listeners to the new O/X choice elements
+            Array.from(questionChoicesArea.children).forEach(choiceDiv => {
+                choiceDiv.addEventListener('click', () => {
+                    if (!isAnswerChecked) { // Ensure only one selection/check per question
+                        playButtonClickSound(); // Play sound immediately on selection
+                        selectChoice(choiceDiv.dataset.choice); // Visually select
+                        checkAnswer(); // Call checkAnswer logic
+                        // Disable choices after an answer is submitted
+                        Array.from(questionChoicesArea.children).forEach(c => {
+                            c.style.pointerEvents = 'none';
+                            c.classList.add('cursor-not-allowed'); // Add a visual cue for disabled
+                        });
+                    }
+                });
+            });
+
+            // Reset feedback and button text
+            feedbackExplanationArea.classList.add('hidden');
+            feedbackText.textContent = '';
+            explanationText.textContent = '';
+            checkNextButton.textContent = '다음 문제로 Go! 👉'; // Button text is always "다음 문제" after a choice is made
+            selectedChoice = null; // Clear selected choice
+            isAnswerChecked = false; // Reset answer checked flag for the *new* question
+            resetChoiceStyles(); // Reset choice styles and re-enable pointer events for new question
+        }
+
+        /**
+         * Handles choice selection.
+         * @param {string} choice - The selected choice ('O' or 'X')
+         */
+        function selectChoice(choice) {
+            resetChoiceStyles(); // Clear previous selection styles
+            selectedChoice = choice;
+            const selectedChoiceElement = questionChoicesArea.querySelector(`[data-choice="${choice}"]`);
+            selectedChoiceElement.classList.add(
+                'bg-blue-200', 'border-blue-500' // Light mode selection styles
+            );
+            // Apply dark mode specific selection styles
+            if (document.documentElement.classList.contains('dark')) {
+                selectedChoiceElement.classList.add('dark:selected-choice-style'); // Apply custom class for dark mode
+            }
+        }
+
+        /**
+         * Resets the styles of all choices.
+         */
+        function resetChoiceStyles() {
+            Array.from(questionChoicesArea.children).forEach(child => {
+                child.classList.remove(
+                    'bg-blue-200', 'border-blue-500', // selected (light mode)
+                    'bg-green-100', 'border-green-400', // correct (light mode)
+                    'bg-red-2200', 'border-red-500',     // incorrect (light mode)
+                    'dark:selected-choice-style', // Remove custom dark mode selected class
+                    'dark:bg-green-700', 'dark:border-green-400', // correct (dark mode)
+                    'dark:bg-red-600', 'dark:border-red-300' // incorrect (dark mode)
+                );
+                child.style.pointerEvents = 'auto'; // Re-enable pointer events for choices
+                child.classList.remove('cursor-not-allowed'); // Remove disabled cursor
+            });
+        }
+
+        /**
+         * Checks the selected answer (called immediately when a choice is made).
+         */
+        function checkAnswer() {
+            isAnswerChecked = true; // Set flag to indicate answer has been checked
+            checkNextButton.textContent = '다음 문제로 Go! 👉'; // Change button text to "다음 문제"
+            feedbackExplanationArea.classList.remove('hidden'); // Show feedback area
+
+            const currentQuestion = currentQuizData[currentQuestionIndex];
+            const correctAnswer = currentQuestion.answer;
+            const selectedChoiceElement = questionChoicesArea.querySelector(`[data-choice="${selectedChoice}"]`);
+            const correctChoiceElement = questionChoicesArea.querySelector(`[data-choice="${correctAnswer}"]`);
+
+            // Highlight correct answer
+            correctChoiceElement.classList.add('bg-green-100', 'border-green-400', 'dark:bg-green-700', 'dark:border-green-400');
+
+            if (selectedChoice === correctAnswer) {
+                score++; // Increment raw score
+                feedbackText.textContent = '딩동댕! 잘했어!  ';
+                // Remove previous error state colors and add success state colors including dark mode variants
+                feedbackText.classList.remove('text-red-600', 'dark:text-red-400');
+                feedbackText.classList.add('text-green-600', 'dark:text-green-400');
+                playCorrectSound(); // Play correct sound
+            } else {
+                feedbackText.textContent = '아쉬워! ㅠㅠ 다시 생각해볼까? 🧐';
+                // Remove previous success state colors and add error state colors including dark mode variants
+                feedbackText.classList.remove('text-green-600', 'dark:text-green-400');
+                feedbackText.classList.add('text-red-600', 'dark:text-red-400');
+                // Ensure selected incorrect answer removes selection highlight properly and applies incorrect style
+                selectedChoiceElement.classList.remove('bg-blue-200', 'border-blue-500', 'dark:selected-choice-style'); // Remove selected style
+                selectedChoiceElement.classList.add('bg-red-200', 'border-red-500', 'dark:bg-red-600', 'dark:border-red-300'); // Add incorrect style
+                incorrectQuestions.push(currentQuestion); // Add to incorrect questions
+                playIncorrectSound(); // Play incorrect sound
+            }
+            explanationText.textContent = `꼼꼼 해설: ${currentQuestion.explanation}`;
+            scoreDisplay.textContent = `별 점수: ${score} ✨`; // Update score immediately (raw score)
+        }
+
+        /**
+         * Moves to the next question or ends the quiz (now always called by checkNextButton).
+         */
+        function checkOrNextQuestion() {
+            moveToNextQuestion();
+            playButtonClickSound(); // Play sound on button click
+        }
+
+        /**
+         * Moves to the next question or ends the quiz.
+         */
+        function moveToNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizTotalQuestions) {
+                displayQuestion();
+            } else {
+                endQuiz();
+            }
+        }
+
+        /**
+         * Ends the quiz and displays the final score.
+         */
+        function endQuiz() {
+            stopTimer(); // Stop the timer
+            showScreen('end');
+
+            // Calculate final score based on 100-point scale
+            const finalCalculatedScore = (score / quizTotalQuestions) * 100;
+            const correctCount = score;
+            const incorrectCount = incorrectQuestions.length;
+
+            // Display all information in the finalScoreDisplay element
+            finalScoreDisplay.textContent = `(총 ${quizTotalQuestions}문제, ${correctCount}개 정답, ${incorrectCount}개 오답! 대단해! 🎉 점수: ${finalCalculatedScore.toFixed(0)}점)`;
+            
+            playEndSound(); // Play end sound
+            updateQuizHeaderVisibility(false); // Hide quiz header
+            endQuizButtonsArea.classList.remove('hidden'); // Ensure buttons are visible on end screen
+        }
+
+        /**
+         * Controls which screen is visible.
+         * @param {'start'|'quiz'|'end'} screenName - The name of the screen to show
+         */
+        function showScreen(screenName) {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            endQuizScreen.classList.add('hidden');
+
+            // Always hide settings initially, then show only if it's the start screen
+            settingsControls.classList.add('hidden'); // Hide settings for all screens by default
+
+            if (screenName === 'start') {
+                startScreen.classList.remove('hidden');
+                settingsControls.classList.remove('hidden'); // Show settings only on start screen
+            } else if (screenName === 'quiz') {
+                quizScreen.classList.remove('hidden');
+                // settingsControls remains hidden
+            } else if (screenName === 'end') {
+                endQuizScreen.classList.remove('hidden');
+                // settingsControls remains hidden
+            }
+        }
+
+        /**
+         * Toggles the visibility of the quiz header elements.
+         * @param {boolean} show - True to show, false to hide
+         */
+        function updateQuizHeaderVisibility(show) {
+            if (show) {
+                quizHeader.classList.remove('hidden');
+            } else {
+                quizHeader.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Shuffles an array randomly (Fisher-Yates shuffle algorithm).
+         * @param {Array} array - The array to shuffle
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+        }
+
+        // ============================ Event Listeners ============================
+
+        // Start screen button event listeners
+        start10Button.addEventListener('click', () => startQuiz(10));
+        start20Button.addEventListener('click', () => startQuiz(20));
+        start40Button.addEventListener('click', () => startQuiz(40));
+
+        // This button now always moves to the next question or ends the quiz
+        checkNextButton.addEventListener('click', checkOrNextQuestion);
+        endEarlyButton.addEventListener('click', endQuiz);
+        // 'Restart Full Quiz' button restarts with the current quiz session's question count
+        restartFullQuizButton.addEventListener('click', () => restartQuiz(quizTotalQuestions));
+        reviewIncorrectButton.addEventListener('click', startReviewMode);
+        goToHomeButton.addEventListener('click', () => {
+            location.reload(); // Go to home screen = reload page
+        });
+
+        // Dark mode toggle event listener
+        darkModeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            // Toggle icons based on dark mode status
+            if (document.documentElement.classList.contains('dark')) {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+        });
+
+        // Sound toggle event listener
+        soundToggle.addEventListener('click', () => {
+            isSoundEnabled = !isSoundEnabled; // Toggle sound status
+            // Update Tone.Destination.mute immediately
+            Tone.Destination.mute = !isSoundEnabled;
+            // Toggle icons based on sound status
+            if (isSoundEnabled) {
+                speakerIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            } else {
+                speakerIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+            }
+        });
+
+
+        // ============================ Quiz initialization and start on DOMContentLoaded ============================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initially show only the start screen, hide all quiz related elements
+            startScreen.classList.remove('hidden');
+            quizScreen.classList.add('hidden'); // Explicitly hide quizScreen
+            endQuizScreen.classList.add('hidden'); // Explicitly hide endQuizScreen
+
+            quizHeader.classList.add('hidden');
+            questionChoicesArea.classList.add('hidden');
+            feedbackExplanationArea.classList.add('hidden');
+            quizControls.classList.add('hidden');
+            endQuizButtonsArea.classList.add('hidden'); // This line was important!
+            scoreDisplay.classList.add('hidden');
+
+            // Settings control should only be visible on the start screen when the page loads
+            showScreen('start'); // This handles visibility of settingsControls correctly
+
+            // Set initial dark mode icon based on system preference or saved state
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+
+            // Set initial sound icon (default: on)
+            if (isSoundEnabled) {
+                speakerIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            } else {
+                speakerIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
